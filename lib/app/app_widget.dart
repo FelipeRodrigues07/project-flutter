@@ -1,4 +1,4 @@
-import 'package:buscador_cep/app/home/home_page.dart';
+import 'package:buscador_cep/app/home/pages/home_page.dart';
 import 'package:flutter/material.dart';
 
 class AppWidget extends StatelessWidget {

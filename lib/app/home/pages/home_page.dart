@@ -1,7 +1,7 @@
-import 'dart:convert';
 
+import 'package:buscador_cep/app/home/controllers/cep_controller.dart';
+import 'package:buscador_cep/app/home/models/cep_model.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -14,33 +14,9 @@ class _HomePageState extends State<HomePage> {
   TextEditingController controllerCep =
       TextEditingController(); //função para pegar o valor
 
-  String? cidade = '';
-  String? estado = '';
-  String? ddd = '';
+  var cep = CepModel();
+  final controller = CepController();
 
-  bool isLoading = false;
-
-  Future<void> searchCep(String cep) async {
-    setState(() {
-      isLoading = true;
-    });
-    String url = 'https://viacep.com.br/ws/$cep/json/';
-    final response = await http.get(Uri.parse(url));
-    final json = jsonDecode(response.body);
-    // print(json);
-    setState(() {
-      cidade = json['localidade'];
-      estado = json['uf'];
-      ddd = json['ddd'];
-    });
-    setState(() {
-      isLoading = false;
-    });
-  }
-
-  bool isValidFields() {
-    return cidade == null || estado == null || ddd == null ? false : true;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,18 +37,27 @@ class _HomePageState extends State<HomePage> {
                   labelText: "Digite um cep", border: OutlineInputBorder()),
             ),
             ElevatedButton(
-                onPressed: () => {
-                      searchCep(controllerCep.text),
+                onPressed: () async => {
+                     cep = await controller.searchCep(controllerCep.text),
                     },
                 child: const Text("Buscar")),
-            isLoading == true
-                ? const CircularProgressIndicator()
-                : isValidFields()
-                    ? Text('Cidade: $cidade - Estado: $estado - DDD: $ddd')
-                    : Text("Houve um erro na requisição")
+            ListenableBuilder(
+              listenable: controller, 
+              builder: (context, child){
+                if(controller.isLoading == true ){
+                  return const CircularProgressIndicator();
+                }
+                if(controller.isError == true){
+                 const Text("Houve um erro na requisição"); 
+                }
+                return Text('Cidade: ${cep.logradouro} - Estado: ${cep.uf} - DDD: ${cep.ddd}');
+              }
+              ), 
           ],
         ),
       ),
     );
   }
 }
+
+
